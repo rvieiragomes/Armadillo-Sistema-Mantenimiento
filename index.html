@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudFleet - Sistema de Mantenimiento</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #F8F9FA; 
+            color: #2C3E50; 
+        }
+        
+        .header { 
+            background: linear-gradient(135deg, #1E3A8A, #3B82F6); 
+            color: white; 
+            padding: 1.5rem 2rem; 
+            display: flex; 
+            align-items: center; 
+        }
+        
+        .logo { font-size: 2rem; margin-right: 1rem; }
+        .header h1 { font-size: 1.8rem; font-weight: 300; }
+        
+        .nav-tabs { 
+            background: white; 
+            padding: 0 2rem; 
+            border-bottom: 2px solid #E5E7EB; 
+            overflow-x: auto; 
+        }
+        
+        .tab-buttons { display: flex; gap: 0; }
+        
+        .tab-btn { 
+            padding: 1rem 1.5rem; 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            color: #6B7280; 
+            border-bottom: 3px solid transparent; 
+            transition: all 0.3s ease; 
+            white-space: nowrap; 
+        }
+        
+        .tab-btn:hover { background: rgba(59, 130, 246, 0.05); color: #3B82F6; }
+        .tab-btn.active { color: #1E3A8A; border-bottom-color: #1E3A8A; background: rgba(30, 58, 138, 0.08); }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .kpi-cards { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem; 
+        }
+        
+        .kpi-card { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 16px; 
+            text-align: center; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            position: relative; 
+        }
+        
+        .kpi-card::before { 
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            height: 5px; 
+            background: var(--accent-color, #8b7355); 
+        }
+        
+        .kpi-value { 
+            font-size: 3rem; 
+            font-weight: bold; 
+            color: var(--accent-color, #1E3A8A); 
+            margin-bottom: 0.5rem; 
+        }
+        
+        .kpi-label { font-size: 1rem; color: #6B7280; font-weight: 500; }
+        
+        .card { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            margin-bottom: 2rem; 
+        }
+        
+        .card h3 { 
+            color: #2C3E50; 
+            margin-bottom: 1.5rem; 
+            font-size: 1.3rem; 
+            font-weight: 600; 
+        }
+        
+        .form-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem; 
+        }
+        
+        .form-group { margin-bottom: 1.5rem; }
+        
+        .form-label { 
+            display: block; 
+            margin-bottom: 0.75rem; 
+            color: #2C3E50; 
+            font-weight: 600; 
+        }
+        
+        .form-control { 
+            width: 100%; 
+            padding: 1rem; 
+            border: 2px solid #E5E7EB; 
+            border-radius: 10px; 
+            font-size: 0.95rem; 
+            transition: all 0.3s ease; 
+        }
+        
+        .form-control:focus { 
+            outline: none; 
+            border-color: #3B82F6; 
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); 
+        }
+        
+        .btn { 
+            padding: 0.75rem 1.5rem; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: all 0.3s ease; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+        }
+        
+        .btn-primary { 
+            background: linear-gradient(135deg, #1E3A8A, #3B82F6); 
+            color: white; 
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3); 
+        }
+        
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+        .btn-secondary { background: #6B7280; color: #FFFFFF; }
+        .btn-secondary:hover { background: #4B5563; }
+        
+        .unit-details { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 1rem; 
+            margin-bottom: 2rem; 
+        }
+        
+        .unit-stat { 
+            text-align: center; 
+            padding: 1rem; 
+            background: white; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+        }
+        
+        .unit-stat-value { 
+            font-size: 1.8rem; 
+            font-weight: bold; 
+            color: var(--stat-color, #3c3835); 
+        }
+        
+        .unit-stat-label { font-size: 0.9rem; color: #6b635a; }
+        
+        .timeline { 
+            padding: 2rem; 
+            background: #f8f6f4; 
+            border-radius: 10px; 
+            overflow-x: auto; 
+        }
+        
+        .timeline-track { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            min-width: 800px; 
+            position: relative; 
+        }
+        
+        .timeline-line { 
+            position: absolute; 
+            top: 50%; 
+            left: 0; 
+            right: 0; 
+            height: 4px; 
+            background: #E5E7EB; 
+            border-radius: 2px; 
+        }
+        
+        .timeline-progress { 
+            height: 100%; 
+            background: linear-gradient(90deg, #1E3A8A 0%, #1E3A8A 60%, #F59E0B 60%, #F59E0B 80%, #E5E7EB 80%); 
+            border-radius: 2px; 
+        }
+        
+        .timeline-point { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            z-index: 2; 
+            position: relative; 
+        }
+        
+        .timeline-dot { 
+            width: 20px; 
+            height: 20px; 
+            border-radius: 50%; 
+            background: var(--dot-color, #1E3A8A); 
+            border: 3px solid white; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2); 
+        }
+        
+        .timeline-label { 
+            margin-top: 0.5rem; 
+            text-align: center; 
+            font-size: 0.75rem; 
+            font-weight: 600; 
+        }
+        
+        .service-item { 
+            padding: 1rem; 
+            border-left: 4px solid var(--border-color, #8b7355); 
+            background: rgba(139, 115, 85, 0.05); 
+            border-radius: 0 8px 8px 0; 
+            margin-bottom: 1rem; 
+        }
+        
+        .service-title { font-weight: 600; color: var(--title-color, #8b7355); }
+        .service-meta { font-size: 0.85rem; color: #6b635a; margin: 0.5rem 0; }
+        .service-cost { font-weight: bold; color: var(--cost-color, #8b7355); }
+        
+        .actions-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 1rem; 
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #d4cfc7;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #6b635a;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            background: rgba(139, 115, 85, 0.1);
+            color: #8b7355;
+        }
+
+        .maintenance-interval {
+            border: 1px solid #d4cfc7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .remove-interval {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #cd853f;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        @media (max-width: 768px) { 
+            .container { padding: 1rem; } 
+            .kpi-cards { grid-template-columns: repeat(2, 1fr); } 
+            .form-grid { grid-template-columns: 1fr; } 
+            .modal-content { width: 95%; padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🔧</div>
+        <h1>CloudFleet - Sistema de Mantenimiento</h1>
+    </div>
+
+    <div class="nav-tabs">
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="showTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-btn" onclick="showTab('work-orders')">⚙️ Órdenes de Trabajo</button>
+            <button class="tab-btn" onclick="showTab('maintenance-plan')">📋 Planificación</button>
+            <button class="tab-btn" onclick="showTab('unit-tracking')">🔍 Seguimiento Unidades</button>
+            <button class="tab-btn" onclick="showTab('alerts')">🔔 Alertas</button>
+            <button class="tab-btn" onclick="showTab('reports')">📈 Reportes</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <div class="kpi-cards">
+                <div class="kpi-card" style="--accent-color: #DC2626;">
+                    <div class="kpi-value">24</div>
+                    <div class="kpi-label">Trabajos Vencidos</div>
+                </div>
+                <div class="kpi-card" style="--accent-color: #F59E0B;">
+                    <div class="kpi-value">8</div>
+                    <div class="kpi-label">Por Vencer</div>
+                </div>
+                <div class="kpi-card" style="--accent-color: #3B82F6;">
+                    <div class="kpi-value">15</div>
+                    <div class="kpi-label">Programados</div>
+                </div>
+                <div class="kpi-card" style="--accent-color: #1E3A8A;">
+                    <div class="kpi-value">92%</div>
+                    <div class="kpi-label">Disponibilidad</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📋 Órdenes de Trabajo Recientes</h3>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <div style="padding: 1rem; border-bottom: 1px solid #E5E7EB; display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #DC2626;"></div>
+                        <div>
+                            <div style="font-weight: 600;">Cambio de aceite - FL-001</div>
+                            <div style="font-size: 0.85rem; color: #6B7280;">Vencido hace 3 días • Preventivo</div>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem; border-bottom: 1px solid #E5E7EB; display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #F59E0B;"></div>
+                        <div>
+                            <div style="font-weight: 600;">Revisión frenos - FL-015</div>
+                            <div style="font-size: 0.85rem; color: #6B7280;">Vence en 2 días • Preventivo</div>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem; border-bottom: 1px solid #E5E7EB; display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: #1E3A8A;"></div>
+                        <div>
+                            <div style="font-weight: 600;">Reparación alternador - FL-008</div>
+                            <div style="font-size: 0.85rem; color: #6B7280;">Completado hoy • Correctivo</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Work Orders -->
+        <div id="work-orders" class="tab-content">
+            <h2 style="margin-bottom: 2rem;">Gestión de Órdenes de Trabajo</h2>
+            <div class="card">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">🔍 Buscar</label>
+                        <input type="text" class="form-control" placeholder="Buscar órdenes...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">📊 Estado</label>
+                        <select class="form-control">
+                            <option>Todos</option>
+                            <option>Pendiente</option>
+                            <option>En Progreso</option>
+                            <option>Completado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">🔧 Tipo</label>
+                        <select class="form-control">
+                            <option>Todos</option>
+                            <option>Preventivo</option>
+                            <option>Correctivo</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="openModal('newWorkOrderModal')">➕ Nueva Orden de Trabajo</button>
+            </div>
+        </div>
+
+        <!-- Maintenance Plan -->
+        <div id="maintenance-plan" class="tab-content">
+            <h2 style="margin-bottom: 2rem;">Planificación de Mantenimiento</h2>
+            
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="openModal('newUnitTypeModal')">🚛 Configurar Tipo de Unidad</button>
+                <button class="btn btn-primary" onclick="openModal('newPlanModal')">📋 Nuevo Plan Preventivo</button>
+            </div>
+            
+            <div class="card">
+                <h3>🚛 Camión Pesado - Plan Preventivo</h3>
+                <div style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(139, 115, 85, 0.1); border-radius: 8px;">
+                    <strong>Estado: Activo</strong> • <span style="color: #8b7355;">✓ 12 unidades asignadas</span>
+                </div>
+                
+                <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+                    <div style="padding: 1rem; background: #f8f6f4; border-radius: 10px; border-left: 3px solid #708090;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <strong>5,000 km - Servicio A</strong>
+                                <div style="font-size: 0.85rem; color: #6b635a;">Cambio aceite motor, filtros básicos</div>
+                            </div>
+                            <div style="text-align: right; color: #708090;">
+                                <div style="font-weight: bold;">$180</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem; background: #f8f6f4; border-radius: 10px; border-left: 3px solid #daa520;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <strong>10,000 km - Servicio B</strong>
+                                <div style="font-size: 0.85rem; color: #6b635a;">Servicio A + frenos, transmisión</div>
+                            </div>
+                            <div style="text-align: right; color: #daa520;">
+                                <div style="font-weight: bold;">$350</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem; background: #f8f6f4; border-radius: 10px; border-left: 3px solid #cd853f;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <strong>25,000 km - Servicio C</strong>
+                                <div style="font-size: 0.85rem; color: #6b635a;">Servicio B + suspensión, diferencial</div>
+                            </div>
+                            <div style="text-align: right; color: #cd853f;">
+                                <div style="font-weight: bold;">$580</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem; background: #f8f6f4; border-radius: 10px; border-left: 3px solid #a0926f;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <strong>50,000 km - Servicio Mayor</strong>
+                                <div style="font-size: 0.85rem; color: #6b635a;">Overhaul completo, motor, transmisión</div>
+                            </div>
+                            <div style="text-align: right; color: #a0926f;">
+                                <div style="font-weight: bold;">$1,250</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unit Tracking -->
+        <div id="unit-tracking" class="tab-content">
+            <h2 style="margin-bottom: 2rem;">🔍 Seguimiento por Unidad</h2>
+            
+            <!-- Selector de Unidad -->
+            <div class="card">
+                <h3>🚛 Seleccionar Unidad para Seguimiento</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">🔍 Buscar por Placa</label>
+                        <input type="text" class="form-control" placeholder="Ej: FL-001" id="plateSearch" onkeyup="searchPlate()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">📋 Seleccionar de Lista</label>
+                        <select class="form-control" onchange="showUnitDetails(this.value)" id="unitSelect">
+                            <option value="">Seleccionar unidad...</option>
+                            <option value="FL-001">FL-001 - Mercedes Actros (Camión Pesado)</option>
+                            <option value="FL-002">FL-002 - Volvo FH (Camión Pesado)</option>
+                            <option value="FL-015">FL-015 - Isuzu NPR (Camión Mediano)</option>
+                            <option value="FL-023">FL-023 - Ford Ranger (Camioneta)</option>
+                            <option value="BUS-001">BUS-001 - Mercedes Sprinter (Bus)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista Detallada -->
+            <div id="unitDetails" style="display: none;">
+                <!-- Información General -->
+                <div class="card" style="background: linear-gradient(135deg, #f8f6f4, #ede8e2);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 id="unitTitle">🚛 FL-001 - MERCEDES ACTROS</h3>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <span style="background: #8b7355; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem;">● OPERATIVO</span>
+                            <span id="maintenanceAlert" style="background: #daa520; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem;">⚠ PRÓXIMO SERVICIO</span>
+                        </div>
+                    </div>
+                    
+                    <div class="unit-details">
+                        <div class="unit-stat" style="--stat-color: #3c3835;">
+                            <div class="unit-stat-value" id="currentKm">45,230</div>
+                            <div class="unit-stat-label">Kilometraje Actual</div>
+                        </div>
+                        <div class="unit-stat" style="--stat-color: #daa520;">
+                            <div class="unit-stat-value" id="nextServiceKm">50,000</div>
+                            <div class="unit-stat-label">Próximo Servicio (km)</div>
+                        </div>
+                        <div class="unit-stat" style="--stat-color: #cd853f;">
+                            <div class="unit-stat-value" id="remainingKm">4,770</div>
+                            <div class="unit-stat-label">Kilómetros Restantes</div>
+                        </div>
+                        <div class="unit-stat" style="--stat-color: #8b7355;">
+                            <div class="unit-stat-value" id="lastServiceKm">25,000</div>
+                            <div class="unit-stat-label">Último Servicio (km)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cronología Visual -->
+                <div class="card">
+                    <h3>📈 Cronología de Mantenimiento</h3>
+                    <div class="timeline">
+                        <div class="timeline-track">
+                            <div class="timeline-line">
+                                <div class="timeline-progress"></div>
+                            </div>
+                            
+                            <div class="timeline-point">
+                                <div class="timeline-dot" style="--dot-color: #8b7355;"></div>
+                                <div class="timeline-label">
+                                    <div style="color: #8b7355;">✓ 5,000</div>
+                                    <div style="color: #6b635a;">Servicio A</div>
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-point">
+                                <div class="timeline-dot" style="--dot-color: #8b7355;"></div>
+                                <div class="timeline-label">
+                                    <div style="color: #8b7355;">✓ 10,000</div>
+                                    <div style="color: #6b635a;">Servicio B</div>
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-point">
+                                <div class="timeline-dot" style="--dot-color: #8b7355;"></div>
+                                <div class="timeline-label">
+                                    <div style="color: #8b7355;">✓ 25,000</div>
+                                    <div style="color: #6b635a;">Servicio C</div>
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-point">
+                                <div class="timeline-dot" style="--dot-color: #daa520; width: 24px; height: 24px;"></div>
+                                <div class="timeline-label">
+                                    <div style="color: #daa520;">🔔 50,000</div>
+                                    <div style="color: #6b635a;">Servicio Mayor</div>
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-point">
+                                <div class="timeline-dot" style="--dot-color: #d4cfc7; width: 16px; height: 16px;"></div>
+                                <div class="timeline-label">
+                                    <div style="color: #6b635a;">100,000</div>
+                                    <div style="color: #6b635a;">Futuro</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acciones Rápidas -->
+                <div class="card">
+                    <h3>🚀 Acciones Rápidas</h3>
+                    <div class="actions-grid">
+                        <button class="btn btn-primary" onclick="scheduleService()">📅 Programar Servicio</button>
+                        <button class="btn btn-secondary" onclick="updateKilometers()">📊 Actualizar Kilometraje</button>
+                        <button class="btn btn-secondary" onclick="viewHistory()">📋 Ver Historial</button>
+                        <button class="btn btn-secondary" onclick="exportData()">📊 Exportar Datos</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div id="alerts" class="tab-content">
+            <h2 style="margin-bottom: 2rem;">🔔 Centro de Alertas</h2>
+            
+            <div class="card">
+                <h3>🔔 Alertas Críticas</h3>
+                <div style="padding: 1rem; background: rgba(205, 133, 63, 0.1); border: 2px solid rgba(205, 133, 63, 0.2); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-size: 1.2rem;">⚠️</span>
+                    <div>
+                        <strong>Vehículo FL-001</strong> superó límite de kilometraje
+                        <div style="font-size: 0.85rem; opacity: 0.8;">Hace 5 horas</div>
+                    </div>
+                </div>
+                
+                <div style="padding: 1rem; background: rgba(218, 165, 32, 0.1); border: 2px solid rgba(218, 165, 32, 0.2); border-radius: 12px; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-size: 1.2rem;">📅</span>
+                    <div>
+                        <strong>Recordatorio:</strong> Mantenimientos programados para mañana
+                        <div style="font-size: 0.85rem; opacity: 0.8;">Hace 1 día</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports -->
+        <div id="reports" class="tab-content">
+            <h2 style="margin-bottom: 2rem;">📈 Reportes y Analytics</h2>
+            
+            <div class="card">
+                <h3>📊 Generar Reporte</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Reporte</label>
+                        <select class="form-control">
+                            <option>Costos de Mantenimiento</option>
+                            <option>Disponibilidad de Flota</option>
+                            <option>Órdenes de Trabajo</option>
+                            <option>Indicadores KPI</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Período</label>
+                        <select class="form-control">
+                            <option>Último mes</option>
+                            <option>Últimos 3 meses</option>
+                            <option>Último año</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Formato</label>
+                        <select class="form-control">
+                            <option>PDF</option>
+                            <option>Excel</option>
+                            <option>CSV</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="generateReport()">📊 Generar Reporte</button>
+            </div>
+
+            <div class="card">
+                <h3>💰 Resumen Financiero</h3>
+                <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #d4cfc7;">
+                    <span>Costo total este mes</span>
+                    <strong>$45,780</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #d4cfc7;">
+                    <span>Preventivo</span>
+                    <span style="color: #8b7355;">$32,450 (71%)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid #d4cfc7;">
+                    <span>Correctivo</span>
+                    <span style="color: #cd853f;">$13,330 (29%)</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 1rem 0;">
+                    <span>Ahorro estimado</span>
+                    <strong style="color: #8b7355;">$8,200</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALES -->
+    
+    <!-- Modal: Nueva Orden de Trabajo -->
+    <div id="newWorkOrderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nueva Orden de Trabajo</h3>
+                <button class="close-modal" onclick="closeModal('newWorkOrderModal')">&times;</button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Vehículo</label>
+                    <select class="form-control" required id="workOrderVehicle">
+                        <option value="">Seleccionar vehículo</option>
+                        <option value="FL-001">FL-001 - Mercedes Actros</option>
+                        <option value="FL-002">FL-002 - Volvo FH</option>
+                        <option value="FL-015">FL-015 - Isuzu NPR</option>
+                        <option value="FL-023">FL-023 - Ford Ranger</option>
+                        <option value="BUS-001">BUS-001 - Mercedes Sprinter</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tipo de Mantenimiento</label>
+                    <select class="form-control" required id="workOrderType">
+                        <option value="">Seleccionar tipo</option>
+                        <option value="preventivo">Preventivo</option>
+                        <option value="correctivo">Correctivo</option>
+                        <option value="predictivo">Predictivo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Prioridad</label>
+                    <select class="form-control" required id="workOrderPriority">
+                        <option value="baja">Baja</option>
+                        <option value="media">Media</option>
+                        <option value="alta" selected>Alta</option>
+                        <option value="critica">Crítica</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Técnico Asignado</label>
+                    <select class="form-control" required id="workOrderTechnician">
+                        <option value="">Seleccionar técnico</option>
+                        <option value="juan">Juan Pérez</option>
+                        <option value="maria">María García</option>
+                        <option value="carlos">Carlos López</option>
+                        <option value="ana">Ana Rodríguez</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label class="form-label">Descripción del Trabajo</label>
+                    <textarea class="form-control" rows="3" placeholder="Describir detalladamente el trabajo a realizar..." id="workOrderDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha Programada</label>
+                    <input type="date" class="form-control" required id="workOrderDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kilometraje Actual</label>
+                    <input type="number" class="form-control" placeholder="45000" id="workOrderKm">
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="closeModal('newWorkOrderModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="createNewWorkOrder()">Crear Orden</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Configurar Tipo de Unidad -->
+    <div id="newUnitTypeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Configurar Tipo de Unidad</h3>
+                <button class="close-modal" onclick="closeModal('newUnitTypeModal')">&times;</button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Tipo de Unidad</label>
+                    <select class="form-control" required id="unitType">
+                        <option value="">Seleccionar tipo</option>
+                        <option value="camion-pesado">Camión Pesado</option>
+                        <option value="camion-mediano">Camión Mediano</option>
+                        <option value="camion-liviano">Camión Liviano</option>
+                        <option value="camioneta">Camioneta</option>
+                        <option value="bus">Bus</option>
+                        <option value="minibus">Minibus</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Marca/Modelo Base</label>
+                    <input type="text" class="form-control" placeholder="Ej: Mercedes Actros, Volvo FH" required id="unitModel">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tipo de Motor</label>
+                    <select class="form-control" required id="unitMotor">
+                        <option value="">Seleccionar motor</option>
+                        <option value="diesel">Diesel</option>
+                        <option value="gasolina">Gasolina</option>
+                        <option value="hibrido">Híbrido</option>
+                        <option value="electrico">Eléctrico</option>
+                        <option value="gas">GAS/GNV</option>
+                    </select>
+                </div>
+            </div>
+            
+            <h4 style="margin: 2rem 0 1rem 0; color: #3c3835;">Definir Intervalos de Mantenimiento</h4>
+            <div id="maintenanceIntervals">
+                <div class="maintenance-interval">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Intervalo (km)</label>
+                            <input type="number" class="form-control" placeholder="5000" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Servicio</label>
+                            <input type="text" class="form-control" placeholder="Servicio A" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Costo Estimado ($)</label>
+                            <input type="number" class="form-control" placeholder="180" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tiempo Estimado (hrs)</label>
+                            <input type="number" class="form-control" placeholder="2" step="0.5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" class="btn btn-secondary" onclick="addMaintenanceInterval()" style="margin-bottom: 1rem;">➕ Agregar Intervalo</button>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="closeModal('newUnitTypeModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="createUnitType()">Crear Configuración</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Nuevo Plan Preventivo -->
+    <div id="newPlanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Asignar Plan Preventivo a Unidad</h3>
+                <button class="close-modal" onclick="closeModal('newPlanModal')">&times;</button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Unidad</label>
+                    <select class="form-control" required onchange="loadUnitTypePlan(this.value)" id="planUnitSelect">
+                        <option value="">Seleccionar unidad</option>
+                        <option value="FL-001" data-type="camion-pesado">FL-001 - Mercedes Actros (Camión Pesado)</option>
+                        <option value="FL-002" data-type="camion-pesado">FL-002 - Volvo FH (Camión Pesado)</option>
+                        <option value="FL-015" data-type="camion-mediano">FL-015 - Isuzu NPR (Camión Mediano)</option>
+                        <option value="FL-023" data-type="camioneta">FL-023 - Ford Ranger (Camioneta)</option>
+                        <option value="BUS-001" data-type="bus">BUS-001 - Mercedes Sprinter (Bus)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Plan Base</label>
+                    <select class="form-control" required id="basePlanSelect">
+                        <option value="">Primero seleccione una unidad</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kilometraje Actual</label>
+                    <input type="number" class="form-control" placeholder="45000" required id="planKm">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha de Inicio</label>
+                    <input type="date" class="form-control" required id="planDate">
+                </div>
+            </div>
+            
+            <div id="selectedPlanPreview" style="display: none; margin-top: 1.5rem; padding: 1rem; background: #f8f6f4; border-radius: 8px;">
+                <h4 style="margin-bottom: 1rem; color: #3c3835;">Vista Previa del Plan:</h4>
+                <div id="planPreviewContent"></div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button class="btn btn-secondary" onclick="closeModal('newPlanModal')">Cancelar</button>
+                <button class="btn btn-primary" onclick="assignPlanToUnit()">Asignar Plan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== NAVEGACIÓN POR TABS ==========
+        function showTab(tabName) {
+            // Ocultar todos los contenidos
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remover clase active de todos los botones
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Mostrar contenido seleccionado
+            const selectedTab = document.getElementById(tabName);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+
+            // Marcar botón como activo
+            const activeButton = document.querySelector(`[onclick="showTab('${tabName}')"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+        }
+
+        // ========== FUNCIONES DE MODALES ==========
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // ========== FUNCIONES DE ORDEN DE TRABAJO ==========
+        function createNewWorkOrder() {
+            const vehicle = document.getElementById('workOrderVehicle').value;
+            const type = document.getElementById('workOrderType').value;
+            const technician = document.getElementById('workOrderTechnician').value;
+            
+            if (!vehicle || !type || !technician) {
+                alert('⚠️ Por favor complete todos los campos obligatorios:\n• Vehículo\n• Tipo de Mantenimiento\n• Técnico Asignado');
+                return;
+            }
+
+            alert(`✅ ¡Orden de trabajo creada exitosamente!\n\n📋 Detalles:\n• Vehículo: ${vehicle}\n• Tipo: ${type}\n• Técnico: ${technician}\n\n📧 La orden ha sido asignada y se enviará notificación al técnico.`);
+            
+            closeModal('newWorkOrderModal');
+            
+            // Limpiar formulario
+            document.getElementById('workOrderVehicle').value = '';
+            document.getElementById('workOrderType').value = '';
+            document.getElementById('workOrderTechnician').value = '';
+        }
+
+        // ========== FUNCIONES DE CONFIGURACIÓN DE TIPO DE UNIDAD ==========
+        function createUnitType() {
+            const type = document.getElementById('unitType').value;
+            const model = document.getElementById('unitModel').value;
+            const motor = document.getElementById('unitMotor').value;
+            
+            if (!type || !model || !motor) {
+                alert('⚠️ Por favor complete todos los campos obligatorios:\n• Tipo de Unidad\n• Marca/Modelo Base\n• Tipo de Motor');
+                return;
+            }
+
+            alert(`✅ ¡Configuración de tipo de unidad creada exitosamente!\n\n🚛 Detalles:\n• Tipo: ${type}\n• Modelo: ${model}\n• Motor: ${motor}\n\n📋 La configuración está lista para ser asignada a unidades.`);
+            
+            closeModal('newUnitTypeModal');
+        }
+
+        function addMaintenanceInterval() {
+            const intervalsContainer = document.getElementById('maintenanceIntervals');
+            const newInterval = document.createElement('div');
+            newInterval.className = 'maintenance-interval';
+            
+            newInterval.innerHTML = `
+                <button type="button" class="remove-interval" onclick="this.parentElement.remove()">×</button>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Intervalo (km)</label>
+                        <input type="number" class="form-control" placeholder="10000" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Servicio</label>
+                        <input type="text" class="form-control" placeholder="Servicio B" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Costo Estimado ($)</label>
+                        <input type="number" class="form-control" placeholder="350" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tiempo Estimado (hrs)</label>
+                        <input type="number" class="form-control" placeholder="4" step="0.5">
+                    </div>
+                </div>
+            `;
+            
+            intervalsContainer.appendChild(newInterval);
+        }
+
+        // ========== FUNCIONES DE PLAN PREVENTIVO ==========
+        function loadUnitTypePlan(unitValue) {
+            const unitSelect = document.getElementById('planUnitSelect');
+            const selectedOption = unitSelect.options[unitSelect.selectedIndex];
+            const unitType = selectedOption.getAttribute('data-type');
+            const basePlanSelect = document.getElementById('basePlanSelect');
+            const previewDiv = document.getElementById('selectedPlanPreview');
+            const previewContent = document.getElementById('planPreviewContent');
+
+            basePlanSelect.innerHTML = '<option value="">Seleccionar plan base</option>';
+
+            if (unitType) {
+                let plans = [];
+                
+                switch(unitType) {
+                    case 'camion-pesado':
+                        plans = [
+                            { value: 'pesado-standard', name: 'Plan Estándar Camión Pesado', intervals: '5k, 10k, 25k, 50k km' }
+                        ];
+                        break;
+                    case 'camion-mediano':
+                        plans = [
+                            { value: 'mediano-standard', name: 'Plan Estándar Camión Mediano', intervals: '6k, 12k, 30k km' }
+                        ];
+                        break;
+                    case 'camioneta':
+                        plans = [
+                            { value: 'camioneta-standard', name: 'Plan Estándar Camioneta', intervals: '7.5k, 15k, 30k km' }
+                        ];
+                        break;
+                    case 'bus':
+                        plans = [
+                            { value: 'bus-urbano', name: 'Plan Bus Urbano', intervals: '4k, 12k, 25k km' }
+                        ];
+                        break;
+                }
+
+                plans.forEach(plan => {
+                    const option = document.createElement('option');
+                    option.value = plan.value;
+                    option.textContent = plan.name;
+                    option.setAttribute('data-intervals', plan.intervals);
+                    basePlanSelect.appendChild(option);
+                });
+
+                basePlanSelect.addEventListener('change', function() {
+                    const selectedPlan = this.options[this.selectedIndex];
+                    if (selectedPlan.value) {
+                        previewContent.innerHTML = `
+                            <strong>Plan:</strong> ${selectedPlan.textContent}<br>
+                            <strong>Intervalos:</strong> ${selectedPlan.getAttribute('data-intervals')}<br>
+                            <strong>Tipo de Unidad:</strong> ${unitType.replace('-', ' ').toUpperCase()}
+                        `;
+                        previewDiv.style.display = 'block';
+                    } else {
+                        previewDiv.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        function assignPlanToUnit() {
+            const unitSelect = document.getElementById('planUnitSelect');
+            const planSelect = document.getElementById('basePlanSelect');
+            
+            if (!unitSelect.value || !planSelect.value) {
+                alert('⚠️ Por favor complete:\n• Unidad\n• Plan Base');
+                return;
+            }
+
+            alert(`✅ ¡Plan preventivo asignado exitosamente!\n\n📋 Detalles:\n• Unidad: ${unitSelect.value}\n• Plan: ${planSelect.options[planSelect.selectedIndex].text}\n\n🔔 El sistema comenzará a generar alertas automáticas según los intervalos definidos.`);
+            
+            closeModal('newPlanModal');
+        }
+
+        // ========== FUNCIONES DEL SISTEMA DE SEGUIMIENTO ==========
+        function showUnitDetails(unitValue) {
+            const detailsDiv = document.getElementById('unitDetails');
+            
+            if (unitValue) {
+                const unitData = {
+                    'FL-001': { 
+                        title: 'FL-001 - MERCEDES ACTROS',
+                        km: '45,230', 
+                        nextService: '50,000', 
+                        remaining: '4,770', 
+                        lastService: '25,000',
+                        alert: '⚠ PRÓXIMO SERVICIO'
+                    },
+                    'FL-002': { 
+                        title: 'FL-002 - VOLVO FH',
+                        km: '38,450', 
+                        nextService: '40,000', 
+                        remaining: '1,550', 
+                        lastService: '30,000',
+                        alert: '🚨 SERVICIO URGENTE'
+                    },
+                    'FL-015': { 
+                        title: 'FL-015 - ISUZU NPR',
+                        km: '32,150', 
+                        nextService: '35,000', 
+                        remaining: '2,850', 
+                        lastService: '30,000',
+                        alert: '⚠ PRÓXIMO SERVICIO'
+                    },
+                    'FL-023': { 
+                        title: 'FL-023 - FORD RANGER',
+                        km: '28,750', 
+                        nextService: '30,000', 
+                        remaining: '1,250', 
+                        lastService: '22,500',
+                        alert: '🚨 SERVICIO URGENTE'
+                    },
+                    'BUS-001': { 
+                        title: 'BUS-001 - MERCEDES SPRINTER',
+                        km: '18,400', 
+                        nextService: '20,000', 
+                        remaining: '1,600', 
+                        lastService: '16,000',
+                        alert: '⚠ PRÓXIMO SERVICIO'
+                    }
+                };
+
+                const data = unitData[unitValue];
+                if (data) {
+                    document.getElementById('unitTitle').textContent = `🚛 ${data.title}`;
+                    document.getElementById('currentKm').textContent = data.km;
+                    document.getElementById('nextServiceKm').textContent = data.nextService;
+                    document.getElementById('remainingKm').textContent = data.remaining;
+                    document.getElementById('lastServiceKm').textContent = data.lastService;
+                    document.getElementById('maintenanceAlert').textContent = data.alert;
+                    
+                    const alertEl = document.getElementById('maintenanceAlert');
+                    if (data.alert.includes('URGENTE')) {
+                        alertEl.style.background = '#cd853f';
+                    } else {
+                        alertEl.style.background = '#daa520';
+                    }
+                }
+                
+                detailsDiv.style.display = 'block';
+                detailsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                detailsDiv.style.display = 'none';
+            }
+        }
+
+        function searchPlate() {
+            const searchValue = document.getElementById('plateSearch').value.toUpperCase();
+            const unitSelect = document.getElementById('unitSelect');
+            
+            for (let i = 0; i < unitSelect.options.length; i++) {
+                if (unitSelect.options[i].value.toUpperCase().includes(searchValue)) {
+                    unitSelect.selectedIndex = i;
+                    showUnitDetails(unitSelect.options[i].value);
+                    return;
+                }
+            }
+            
+            if (searchValue === '') {
+                unitSelect.selectedIndex = 0;
+                document.getElementById('unitDetails').style.display = 'none';
+            }
+        }
+
+        // ========== FUNCIONES DE ACCIONES ==========
+        function scheduleService() {
+            alert('📅 Programando servicio para la unidad seleccionada.\n\n¡Se creará automáticamente la orden de trabajo!\n\n✅ Servicio programado exitosamente');
+        }
+
+        function updateKilometers() {
+            const newKm = prompt('📊 Ingrese el nuevo kilometraje:', '46000');
+            if (newKm && !isNaN(newKm)) {
+                alert(`✅ Kilometraje actualizado a ${parseInt(newKm).toLocaleString()} km\n\n🔄 El sistema recalculó automáticamente:\n• Próximo servicio\n• Alertas de mantenimiento\n• Proyecciones de costos`);
+                document.getElementById('currentKm').textContent = parseInt(newKm).toLocaleString();
+            }
+        }
+
+        function viewHistory() {
+            alert('📋 Historial completo de mantenimiento:\n\n📊 Resumen:\n• 45 servicios realizados\n• Inversión total: $18,450\n• Promedio por servicio: $410\n• Cumplimiento: 98.2%\n• Última falla: Hace 8 meses\n\n✅ Excelente historial de mantenimiento');
+        }
+
+        function exportData() {
+            alert('📊 Exportando datos de la unidad:\n\n📁 Archivos generados:\n• Historial completo (PDF)\n• Costos por período (Excel)\n• Indicadores KPI (CSV)\n• Proyecciones futuras (PDF)\n\n⬇️ ¡Descarga iniciada!');
+        }
+
+        function generateReport() {
+            alert('📊 Generando reporte personalizado...\n\n⏳ Procesando datos:\n• Analizando costos\n• Calculando KPIs\n• Generando gráficos\n• Creando proyecciones\n\n✅ ¡Reporte listo! Se descargará automáticamente.');
+        }
+
+        // ========== INICIALIZACIÓN ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar fecha por defecto
+            const today = new Date().toISOString().split('T')[0];
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                input.value = today;
+            });
+
+            // Cerrar modales al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('show');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+
+            // Precargar FL-001 como ejemplo
+            setTimeout(() => {
+                const unitSelect = document.getElementById('unitSelect');
+                if (unitSelect) {
+                    unitSelect.value = 'FL-001';
+                    showUnitDetails('FL-001');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
